@@ -1,36 +1,14 @@
-# Auditoría de revisión cruzada con agente externo
+# Auditorías de Semana 4
 
-Esta carpeta conserva evidencia reproducible de la revisión adversarial ejecutada mediante Google Gemini y de las decisiones
-tomadas después del ataque.
+La revisión cruzada usa **Google Gemini como contraparte externa** y se declara expresamente como agente, no como persona humana.
 
-## Corridas
+Cada corrida nueva queda en \`audits/runs/<run_id>/\` con:
 
-Cada corrida en `audits/runs/<run_id>/` contiene:
+- \`request.md\`: solicitud exacta enviada al agente;
+- \`peer_exchange.json\`: salida estructurada completa;
+- \`peer_trace.jsonl\`: hoja digital producida por Gemini para que el autor la audite;
+- \`our_audit_of_peer.json\`: respuestas reconstruidas desde esa hoja;
+- \`review.md\`: ambas direcciones de la revisión cruzada;
+- \`manifest.json\`: modelo, commit, timestamps y hashes.
 
-- `request.md`: prompt exacto enviado;
-- `review.json`: respuesta estructurada sin editar;
-- `review.md`: representación legible;
-- `manifest.json`: proveedor, modelo, SDK, commit evaluado, timestamps, uso y hashes SHA-256.
-
-**Nunca se registra la API key.**
-
-## Resoluciones
-
-Cuando una revisión obliga a cambiar los artefactos evaluados, el expediente original no se sobrescribe. La respuesta del
-autor queda en `audits/resolutions/<run_id>.json`, donde se registra:
-
-- qué ataques se aceptaron o rechazaron;
-- cómo se cerró cada explotación;
-- qué criterios se compraron después de recalcular la subasta;
-- qué entradas cambiaron respecto del commit auditado.
-
-Esto permite conservar simultáneamente el estado **antes del ataque** y la versión **después de la defensa**.
-
-## Corrida vigente
-
-La revisión utilizada para esta entrega es `gha-35804447917-1`, identificada también por `audits/latest.json`.
-
-## Alcance académico
-
-La revisión fue realizada por un **agente externo** y no se presenta como revisión humana. Esto produce evidencia técnica
-independiente y reproducible, pero no afirma sustituir una exigencia administrativa de participación de otro estudiante.
+\`audits/cross_audit.md\` y \`audits/latest.json\` apuntan a la corrida utilizada en la entrega.

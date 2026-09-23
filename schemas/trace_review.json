@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["peer_trace", "peer_run_summary", "audit_of_student_trace", "overall_notes"],
+  "properties": {
+    "peer_trace": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["request_id", "verdict", "reason", "invariant", "tokens_charged", "balance_after", "poison_action", "poison_locator"],
+        "properties": {
+          "request_id": {"type": "string"},
+          "verdict": {"type": "string", "enum": ["permitida", "denegada", "agotado"]},
+          "reason": {"type": "string"},
+          "invariant": {"type": ["string", "null"]},
+          "tokens_charged": {"type": "integer", "minimum": 0},
+          "balance_after": {"type": "integer", "minimum": 0},
+          "poison_action": {"type": ["string", "null"]},
+          "poison_locator": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "peer_run_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["final_state", "final_balance", "reason"],
+      "properties": {
+        "final_state": {"type": "string"},
+        "final_balance": {"type": "integer", "minimum": 0},
+        "reason": {"type": "string"}
+      }
+    },
+    "audit_of_student_trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["q1_spend", "q2_denials", "q3_poison", "q4_final_state", "q5_misnamed_reasons"],
+      "properties": {
+        "q1_spend": {"type": "string"},
+        "q2_denials": {"type": "string"},
+        "q3_poison": {"type": "string"},
+        "q4_final_state": {"type": "string"},
+        "q5_misnamed_reasons": {"type": "string"}
+      }
+    },
+    "overall_notes": {"type": "string"}
+  }
+}

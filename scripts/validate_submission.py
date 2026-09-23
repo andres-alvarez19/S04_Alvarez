@@ -1,403 +1,195 @@
 #!/usr/bin/env python3
-from pathlib import Path
+from __future__ import annotations
+
+import argparse
 import hashlib
 import json
+import subprocess
+import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def fail(msg):
-    print(f"[FAIL] {msg}")
+def ok(message: str) -> bool:
+    print(f"[OK] {message}")
+    return True
+
+
+def fail(message: str) -> bool:
+    print(f"[FAIL] {message}")
     return False
 
 
-def ok(msg):
-    print(f"[OK] {msg}")
-    return True
-
-
-def warn(msg):
-    print(f"[WARN] {msg}")
-    return True
-
-
-def load_json(path):
-    with path.open(encoding="utf-8") as f:
-        return json.load(f)
-
-
-def sha256_path(path):
+def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def validate_schema(instance, schema):
-    try:
-        import jsonschema
-    except ImportError:
-        return fail("Falta dependencia: pip install jsonschema")
-
-    try:
-        jsonschema.Draft202012Validator(schema).validate(instance)
-        return ok("work_order.json cumple el schema local")
-    except jsonschema.ValidationError as e:
-        route = "/".join(map(str, e.path)) or "<root>"
-        return fail(f"Schema local: {e.message} (ruta: {route})")
+def load_jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def validate_semantics(wo, auction):
-    valid = True
-    purchased_ids = {
-        item["criterion_id"]
-        for item in auction["items"]
-        if item["status"] == "purchased"
-    }
-    final_ids = {item["id"] for item in wo["acceptance"]}
-
-    if final_ids != purchased_ids:
-        valid &= fail(
-            "work_order.json debe contener exactamente los criterios comprados en la subasta: "
-            f"esperados={sorted(purchased_ids)}, actuales={sorted(final_ids)}"
-        )
-    else:
-        valid &= ok("work_order.json contiene exactamente los criterios comprados")
-
-    if not any(x["verification"].startswith("validator:") for x in wo["acceptance"]):
-        valid &= fail("El alcance final no conserva ningún validador con umbral")
-    else:
-        valid &= ok("El alcance final conserva un validador con umbral")
-
-    if not any(x["verification"].startswith("test:") for x in wo["acceptance"]):
-        valid &= fail("El alcance final no conserva ningún test nombrado")
-    else:
-        valid &= ok("El alcance final conserva tests nombrados")
-
-    negative_tokens = ("ningún", "ninguna", " no ", "prohib")
-    if not any(
-        any(tok in (" " + item["criterion"].lower() + " ") for tok in negative_tokens)
-        for item in wo["acceptance"]
-    ):
-        valid &= fail("No se detectó una restricción negativa en el alcance final")
-    else:
-        valid &= ok("El alcance final conserva una restricción negativa")
-
-    if len(wo["no_objectives"]) < 3:
-        valid &= fail("Se requieren al menos tres no-objetivos")
-    else:
-        valid &= ok("Hay al menos tres no-objetivos")
-
-    qb = wo["question_budget"]
-    if qb["max_blocking_questions"] > 6 or qb["max_rounds"] > 2:
-        valid &= fail("El presupuesto de preguntas excede 6 bloqueantes / 2 rondas")
-    else:
-        valid &= ok("Presupuesto de preguntas dentro del límite de la guía")
-
-    return bool(valid)
-
-
-def validate_auction(wo, auction):
-    valid = True
-    purchased = sum(
-        item["cost"] for item in auction["items"] if item["status"] == "purchased"
-    )
-
-    if purchased != auction["spent"]:
-        valid &= fail("auction.json: spent no coincide con la suma comprada")
-    else:
-        valid &= ok(f"Subasta consistente: {purchased}/{auction['budget_total']} fichas")
-
-    if purchased > auction["budget_total"]:
-        valid &= fail("La subasta excede 100 fichas")
-
-    if auction["remaining"] != auction["budget_total"] - auction["spent"]:
-        valid &= fail("auction.json: remaining no coincide con budget_total - spent")
-    else:
-        valid &= ok(f"Saldo de subasta consistente: {auction['remaining']} fichas")
-
-    not_purchased = [
-        item for item in auction["items"] if item["status"] == "not_purchased"
-    ]
-    if not not_purchased:
-        valid &= fail("No hay criterios movidos fuera de alcance")
-    elif not all(item.get("reopen_condition") for item in not_purchased):
-        valid &= fail("Falta condición de reapertura en algún criterio no comprado")
-    else:
-        valid &= ok("Todos los criterios no comprados tienen condición de reapertura")
-
-    no_objectives = " ".join(wo["no_objectives"]).lower()
-    for item in not_purchased:
-        condition = item["reopen_condition"].lower()
-        key_tokens = [
-            token for token in ("15 fichas", "25 fichas", "ledger", "traceability")
-            if token in condition
-        ]
-        if key_tokens and not any(token in no_objectives for token in key_tokens):
-            valid &= fail(
-                f"No se encuentra en no-objetivos evidencia de reapertura para {item['criterion_id']}"
-            )
-
-    if valid:
-        valid &= ok("Los criterios no comprados quedaron fuera de alcance con reapertura")
-
-    return bool(valid)
-
-
-def load_jsonl(path):
-    rows = []
-    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        if line.strip():
-            try:
-                rows.append(json.loads(line))
-            except json.JSONDecodeError as e:
-                raise ValueError(f"{path.name}:{n}: {e}") from e
-    return rows
-
-
-def validate_evals():
-    valid = True
-    required = {
-        "caso_abstencion.jsonl": "abstention",
-        "caso_adversario.jsonl": "adversary",
-        "caso_agotamiento.jsonl": "budget_exhaustion",
-    }
-
-    for fn, typ in required.items():
-        path = ROOT / "evals" / fn
-        if not path.exists():
-            valid &= fail(f"Falta {fn}")
-            continue
-
-        try:
-            rows = load_jsonl(path)
-        except ValueError as e:
-            valid &= fail(str(e))
-            continue
-
-        if not rows:
-            valid &= fail(f"{fn} está vacío")
-            continue
-
-        row = rows[0]
-        if row.get("case_type") != typ:
-            valid &= fail(f"{fn}: case_type incorrecto")
-            continue
-
-        if not all(k in row for k in ("input", "initial_state", "expected_verdict")):
-            valid &= fail(f"{fn}: faltan input/initial_state/expected_verdict")
-            continue
-
-        verdict = row["expected_verdict"]
-        if typ == "abstention" and not verdict.get("missing_evidence"):
-            valid &= fail("Abstención: debe nombrar la evidencia que cierra la brecha")
-            continue
-        if typ == "adversary" and not verdict.get("quarantined_fragment"):
-            valid &= fail("Adversario: debe contener fragmento puesto en cuarentena")
-            continue
-        if typ == "budget_exhaustion" and not verdict.get("resume_trace"):
-            valid &= fail("Agotamiento: debe contener traza de reanudación")
-            continue
-
-        valid &= ok(f"{fn} cumple controles mínimos")
-
-    return bool(valid)
-
-
-def validate_bitacora():
-    path = ROOT / "bitacora.md"
-    if not path.exists():
-        return fail("Falta bitacora.md")
-
-    text = path.read_text(encoding="utf-8")
-    valid = True
-
-    for cid in [f"AC-0{i}" for i in range(1, 6)]:
-        if cid not in text:
-            valid &= fail(f"bitacora.md no documenta {cid}")
-
-    for flavor in ("validator:", "test:", "ledger:"):
-        if flavor not in text:
-            valid &= fail(f"bitacora.md no conserva el sabor inicial {flavor}")
-
-    if "gha-35804447917-1" not in text:
-        valid &= fail("bitacora.md no referencia la corrida de revisión externa")
-
-    if "aceptado" not in text.lower() or "rechazada" not in text.lower():
-        valid &= fail("bitacora.md no documenta respuestas a ataques recibidos")
-
-    if "Total gastado: 90" not in text:
-        valid &= fail("bitacora.md no documenta la subasta final de 90 fichas")
-
-    if valid:
-        valid &= ok(
-            "bitacora.md conserva 5 criterios iniciales, tres sabores, ataques y respuestas R3"
-        )
-
-    return bool(valid)
-
-
-def validate_external_review_setup():
+def validate_required_files() -> bool:
     required = [
-        "prompts/external_review.md",
-        "schemas/external_review.json",
-        "scripts/run_external_review.py",
+        "harness/__init__.py",
+        "harness/paths.py",
+        "harness/run.py",
+        "harness/budget.py",
+        "harness/taint.py",
+        "harness/trace.py",
+        "evals/test_paths.py",
+        "evals/test_arnes.py",
+        "TRACE/portero.jsonl",
+        "activity/policy.json",
+        "activity/requests.json",
+        "evidence/tests.txt",
+        "evidence/ablation.txt",
+        "bitacora.md",
+        ".github/workflows/validate.yml",
         ".github/workflows/external-review.yml",
-        ".env.example",
-        ".gitignore",
-        "docs/external-review.md",
     ]
-    missing = [relative for relative in required if not (ROOT / relative).exists()]
-    if missing:
-        return fail(
-            "Configuración de revisión externa incompleta: faltan "
-            + ", ".join(missing)
-        )
-
-    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
-    if "google-genai" not in requirements:
-        return fail("requirements.txt no incluye google-genai")
-
-    prompt = (ROOT / "prompts" / "external_review.md").read_text(encoding="utf-8")
-    if "datos no confiables" not in prompt.lower():
-        return fail("El prompt externo no declara los artefactos como datos no confiables")
-
-    return ok("Configuración de revisión externa Gemini completa")
+    missing = [item for item in required if not (ROOT / item).exists()]
+    return fail("Faltan: " + ", ".join(missing)) if missing else ok("Estructura obligatoria S04 presente")
 
 
-def validate_external_audit(wo, auction):
-    latest_path = ROOT / "audits" / "latest.json"
-    if not latest_path.exists():
-        return fail("No existe audits/latest.json: falta la revisión externa ejecutada")
+def validate_trace() -> bool:
+    trace = ROOT / "TRACE" / "portero.jsonl"
+    before = sha256(trace)
+    build = subprocess.run([sys.executable, "scripts/build_portero_trace.py"], cwd=ROOT, text=True, capture_output=True)
+    if build.returncode != 0:
+        return fail("No se pudo regenerar la traza: " + build.stderr.strip())
+    after = sha256(trace)
+    valid = True
+    if before != after:
+        valid &= fail("TRACE/portero.jsonl no coincide con el generador reproducible")
+    else:
+        valid &= ok("Traza digital reproducible")
 
+    rows = load_jsonl(trace)
+    if len(rows) != 15 or [r["request_id"] for r in rows] != [f"S-{i:02d}" for i in range(1, 16)]:
+        valid &= fail("La traza debe contener exactamente S-01..S-15")
+    else:
+        valid &= ok("Traza contiene las 15 solicitudes")
+
+    balance = 12
+    for row in rows:
+        if row["balance_before"] != balance:
+            valid &= fail(f"Saldo previo inconsistente en {row['request_id']}")
+            break
+        balance -= row["tokens_charged"]
+        if row["balance_after"] != balance:
+            valid &= fail(f"Saldo posterior inconsistente en {row['request_id']}")
+            break
+    else:
+        valid &= ok(f"Saldo encadenado consistente: 12 -> {balance}")
+
+    poisons = {r["poison"]["id"] for r in rows if r.get("poison")}
+    if poisons != {"V-01", "V-02", "V-03"}:
+        valid &= fail(f"Cuarentenas incorrectas: {sorted(poisons)}")
+    elif not all(r["poison"]["action"] == "cuarentena" and r["poison"]["run_continues"] for r in rows if r.get("poison")):
+        valid &= fail("Alguna cuarentena no conserva continuidad")
+    else:
+        valid &= ok("Tres contenidos envenenados en cuarentena con continuidad")
+
+    s10 = next(r for r in rows if r["request_id"] == "S-10")
+    if s10["verdict"] != "agotado" or not s10["partial"] or not s10["partial"]["resumable"]:
+        valid &= fail("S-10 debe ser AGOTADO con entrega parcial reanudable")
+    else:
+        valid &= ok("Agotamiento diferenciado de denegación")
+    return bool(valid)
+
+
+def validate_path_resolver_source() -> bool:
+    text = (ROOT / "harness" / "paths.py").read_text(encoding="utf-8")
+    valid = True
+    if "relative_to(base)" not in text or ".resolve()" not in text:
+        valid &= fail("PathResolver no demuestra comparación sobre rutas resueltas")
+    else:
+        valid &= ok("PathResolver compara rutas resueltas")
+    if "raise Violation" in text:
+        valid &= fail("Las violaciones no deben propagarse como excepción")
+    else:
+        valid &= ok("Violaciones de ruta vuelven como datos")
+    return bool(valid)
+
+
+def validate_tests() -> bool:
+    run = subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=ROOT, text=True, capture_output=True)
+    print(run.stdout.rstrip())
+    if run.returncode != 0:
+        print(run.stderr.rstrip())
+        return fail("La batería S04 no está en verde")
+    if "12 passed" not in run.stdout:
+        return fail("Se esperaban 12 pruebas: 6 rutas oficiales + 6 pruebas del arnés")
+    return ok("Batería completa en verde: 12 pruebas")
+
+
+def validate_ablation() -> bool:
+    text = (ROOT / "evidence" / "ablation.txt").read_text(encoding="utf-8")
+    required = ["1 failed, 11 passed", "12 passed", "removed=I5", "overwrite_existing_output"]
+    if not all(token in text for token in required):
+        return fail("Evidencia de ablación/restauración incompleta")
+    return ok("Ablación I5 muestra fallo y restauración vuelve a verde")
+
+
+def validate_bitacora() -> bool:
+    text = (ROOT / "bitacora.md").read_text(encoding="utf-8")
+    required = ["R1 · Política y saldo", "R2 · Turno de portero", "R3 · Auditoría cruzada", "R4 · Implementación", "R5 · Ablación", "12 passed", "1 failed, 11 passed"]
+    missing = [token for token in required if token not in text]
+    return fail("Bitácora incompleta: " + ", ".join(missing)) if missing else ok("Bitácora cubre R1-R5 con evidencia literal")
+
+
+def validate_cross_review(pre_review: bool) -> bool:
+    if pre_review:
+        return ok("Auditoría Gemini omitida en validación previa a R3")
+    latest = ROOT / "audits" / "latest.json"
     try:
-        import jsonschema
-    except ImportError:
-        return fail("Falta dependencia jsonschema para verificar la auditoría externa")
-
-    latest = load_json(latest_path)
-    run_id = latest["run_id"]
-    run_dir = ROOT / latest["run_directory"]
-    required = ["request.md", "review.json", "review.md", "manifest.json"]
+        data = json.loads(latest.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return fail(f"audits/latest.json inválido: {exc}")
+    if data.get("status") != "complete":
+        return fail("La revisión cruzada Gemini aún no está completada")
+    run_dir = ROOT / data["run_directory"]
+    required = ["request.md", "peer_exchange.json", "peer_trace.jsonl", "our_audit_of_peer.json", "review.md", "manifest.json"]
     missing = [name for name in required if not (run_dir / name).exists()]
     if missing:
-        return fail(f"Auditoría externa incompleta: faltan {', '.join(missing)}")
-
-    schema = load_json(ROOT / "schemas" / "external_review.json")
-    review = load_json(run_dir / "review.json")
-    manifest = load_json(run_dir / "manifest.json")
-
-    try:
-        jsonschema.Draft202012Validator(schema).validate(review)
-    except jsonschema.ValidationError as e:
-        route = "/".join(map(str, e.path)) or "<root>"
-        return fail(f"review.json no cumple schema externo: {e.message} ({route})")
-
-    valid = True
-    attacks = review["attacks"]
-    attacked_ids = {item["criterion_id"] for item in attacks}
-    if len(attacks) < 3 or len(attacked_ids) < 3:
-        valid &= fail("La auditoría externa no contiene tres ataques sobre criterios distintos")
-    else:
-        valid &= ok("Auditoría externa contiene al menos tres ataques sobre criterios distintos")
-
-    if not any(item["is_original"] for item in attacks):
-        valid &= fail("La auditoría externa no contiene ataque original")
-    else:
-        valid &= ok("Auditoría externa contiene al menos un ataque original")
-
-    expected = {f"AC-0{i}" for i in range(1, 6)}
-    assessed = {item["criterion_id"] for item in review["criteria_assessment"]}
-    if assessed != expected:
-        valid &= fail("La auditoría externa no evalúa exactamente AC-01...AC-05")
-    else:
-        valid &= ok("Auditoría externa evalúa exactamente AC-01...AC-05")
-
-    review_hash = sha256_path(run_dir / "review.json")
-    request_hash = sha256_path(run_dir / "request.md")
-    if review_hash != manifest.get("review_sha256"):
-        valid &= fail("Hash de review.json no coincide con manifest.json")
-    elif review_hash != latest.get("review_sha256"):
-        valid &= fail("Hash de review.json no coincide con audits/latest.json")
-    else:
-        valid &= ok("Hash de review.json verificado")
-
-    if request_hash != manifest.get("request_sha256"):
-        valid &= fail("Hash de request.md no coincide con manifest.json")
-    else:
-        valid &= ok("Hash de request.md verificado")
-
-    changed_inputs = []
-    for relative, expected_hash in manifest.get("input_sha256", {}).items():
-        path = ROOT / relative
-        if not path.exists():
-            valid &= fail(f"Entrada auditada ya no existe: {relative}")
-            continue
-        if sha256_path(path) != expected_hash:
-            changed_inputs.append(relative)
-
-    if changed_inputs:
-        resolution_path = ROOT / "audits" / "resolutions" / f"{run_id}.json"
-        if not resolution_path.exists():
-            valid &= fail(
-                "La auditoría es histórica porque cambiaron entradas, pero falta su resolución R3"
-            )
-        else:
-            resolution = load_json(resolution_path)
-            expected_changed = sorted(resolution.get("changed_inputs", []))
-            if sorted(changed_inputs) != expected_changed:
-                valid &= fail(
-                    "Los archivos modificados tras R3 no coinciden con la resolución auditada: "
-                    f"detectados={sorted(changed_inputs)}, declarados={expected_changed}"
-                )
-            elif resolution.get("status") != "resolved":
-                valid &= fail("La resolución R3 no está marcada como resolved")
-            elif resolution.get("audit_run_id") != run_id:
-                valid &= fail("La resolución R3 apunta a otra corrida")
-            else:
-                purchased_ids = sorted(
-                    item["criterion_id"]
-                    for item in auction["items"]
-                    if item["status"] == "purchased"
-                )
-                final_ids = sorted(item["id"] for item in wo["acceptance"])
-                if resolution.get("final_purchased_ids") != purchased_ids:
-                    valid &= fail("La resolución R3 no coincide con la subasta final")
-                elif final_ids != purchased_ids:
-                    valid &= fail("La orden final no coincide con la resolución R3")
-                else:
-                    valid &= ok(
-                        "Auditoría histórica resuelta: cambios posteriores a R3 están trazados"
-                    )
-    else:
-        valid &= ok("Auditoría externa corresponde exactamente a los artefactos actuales")
-
-    if valid:
-        valid &= ok(
-            f"Auditoría externa íntegra: {run_id} / modelo {latest.get('model')}"
-        )
-
-    return bool(valid)
+        return fail("Auditoría Gemini incompleta: " + ", ".join(missing))
+    peer_rows = load_jsonl(run_dir / "peer_trace.jsonl")
+    if len(peer_rows) != 15:
+        return fail("La hoja digital de Gemini no contiene 15 filas")
+    bitacora = (ROOT / "bitacora.md").read_text(encoding="utf-8")
+    between = bitacora.split("<!-- CROSS_AUDIT_START -->", 1)[1].split("<!-- CROSS_AUDIT_END -->", 1)[0]
+    if "Google Gemini" not in between or "Mi auditoría de la hoja producida por Gemini" not in between:
+        return fail("La bitácora no incorpora las cinco respuestas de la hoja ajena")
+    return ok(f"Revisión cruzada Gemini completa: {data['run_id']}")
 
 
-def main():
-    wo = load_json(ROOT / "work_order.json")
-    schema = load_json(ROOT / "schemas" / "work_order.json")
-    auction = load_json(ROOT / "auction.json")
+def validate_no_secret() -> bool:
+    env = (ROOT / ".env.example").read_text(encoding="utf-8")
+    if "replace_with" not in env:
+        return fail(".env.example parece contener una credencial real")
+    return ok("La API key no se registra en los artefactos versionados")
 
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pre-review", action="store_true", help="No exige todavía la corrida externa de Gemini")
+    args = parser.parse_args()
     checks = [
-        validate_schema(wo, schema),
-        validate_semantics(wo, auction),
-        validate_auction(wo, auction),
-        validate_evals(),
+        validate_required_files(),
+        validate_trace(),
+        validate_path_resolver_source(),
+        validate_tests(),
+        validate_ablation(),
         validate_bitacora(),
-        validate_external_review_setup(),
-        validate_external_audit(wo, auction),
+        validate_cross_review(args.pre_review),
+        validate_no_secret(),
     ]
-
     print()
     if all(checks):
-        print("VALIDACIÓN LOCAL SUPERADA")
+        print("VALIDACIÓN S04 SUPERADA" + (" (PRE-REVIEW)" if args.pre_review else ""))
         return 0
-
-    print("VALIDACIÓN LOCAL FALLIDA")
+    print("VALIDACIÓN S04 FALLIDA")
     return 1
 
 

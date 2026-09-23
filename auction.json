@@ -1,0 +1,39 @@
+{
+  "budget_total": 100,
+  "items": [
+    {
+      "criterion_id": "AC-01",
+      "mechanism": "new_validator",
+      "cost": 40,
+      "status": "purchased"
+    },
+    {
+      "criterion_id": "AC-02",
+      "mechanism": "new_repository_test",
+      "cost": 25,
+      "status": "purchased"
+    },
+    {
+      "criterion_id": "AC-03",
+      "mechanism": "new_repository_test",
+      "cost": 25,
+      "status": "purchased"
+    },
+    {
+      "criterion_id": "AC-04",
+      "mechanism": "ledger_query",
+      "cost": 15,
+      "status": "not_purchased",
+      "reopen_condition": "Disponibilidad de al menos 15 fichas de verificación o existencia de un verificador de ledger mantenido y aceptado para el encargo."
+    },
+    {
+      "criterion_id": "AC-05",
+      "mechanism": "new_repository_test",
+      "cost": 25,
+      "status": "not_purchased",
+      "reopen_condition": "Disponibilidad de al menos 25 fichas adicionales para mantener test:traceability_matches_source."
+    }
+  ],
+  "spent": 90,
+  "remaining": 10
+}

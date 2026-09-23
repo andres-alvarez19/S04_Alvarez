@@ -1,0 +1,7 @@
+{
+  "git_commit_evaluated": "d96fbedc22f124a88ace251d9a4dcb91be92ffab",
+  "model": "gemini-3.5-flash-lite",
+  "review_sha256": "b825feff4ae473f7b0cf267c892a3a8bf701df8930f2a2f893148275027d92bc",
+  "run_directory": "audits/runs/gha-35804447917-1",
+  "run_id": "gha-35804447917-1"
+}

@@ -1,0 +1,75 @@
+{
+  "work_order_id": "WO-2026-922-01",
+  "project_id": "PRJ-2026-922",
+  "nivel": "T1",
+  "nivel_criterio_de_admision": "La ruta es enumerable, existe una decisión genuinamente ambigua al traducir un informe de defecto a una aserción y un fixture, y la salida es verificable por código.",
+  "medicion_que_autoriza_ascender": "intermediate_artifacts_with_independent_reader > 1 OR ledger.retry_cost_usd > ledger.intermediate_gate_cost_usd",
+  "objective": "Convertir cada informe de defecto admitido en al menos un caso de prueba ejecutable asociado al identificador del informe, o abstenerse declarando la evidencia faltante cuando el defecto no pueda especificarse de forma verificable.",
+  "no_objectives": [
+    "Corregir el defecto o modificar código de producción.",
+    "Priorizar defectos, asignar severidad o decidir su urgencia de negocio.",
+    "Ejecutar pruebas contra producción, datos reales de personas o servicios externos.",
+    "Queda fuera del alcance de esta versión garantizar un tope de USD 0,50 y 300 s por corrida; se reabre cuando el presupuesto de verificación disponga de al menos 15 fichas o exista un verificador de ledger mantenido y aceptado para este encargo.",
+    "Queda fuera del alcance de esta versión garantizar trazabilidad exacta entre cada aserción generada y el fragmento fuente del informe; se reabre cuando el presupuesto de verificación disponga de al menos 25 fichas para mantener test:traceability_matches_source."
+  ],
+  "consumer": "pipeline",
+  "scope": {
+    "include": [
+      "INPUT/raw/defect_reports/**",
+      "INPUT/raw/repository/**",
+      "INPUT/raw/defect_report_sample.md"
+    ],
+    "exclude": [
+      "entornos de producción",
+      "datos reales de personas",
+      "cambios en código de producción",
+      "llamadas de red no autorizadas"
+    ]
+  },
+  "acceptance": [
+    {
+      "id": "AC-01",
+      "criterion": "Cada informe admitido produce al menos un caso de prueba ejecutable que invoca la ruta objetivo y cuya falla ocurre únicamente cuando una aserción compara un resultado observado de esa ruta con el comportamiento esperado declarado; fallas incondicionales como raise AssertionError o assert False no cuentan como reproducción.",
+      "verification": "validator:defect_reproduction_rate >= 1.0"
+    },
+    {
+      "id": "AC-02",
+      "criterion": "Cada archivo de prueba generado es descubierto por el runner registrado y contiene al menos un caso que ejecuta la ruta objetivo y evalúa una aserción no trivial derivada del comportamiento esperado del informe; pass, tests vacíos y aserciones incondicionalmente verdaderas no cuentan.",
+      "verification": "test:generated_tests_collect_and_assert_expected_behavior"
+    },
+    {
+      "id": "AC-03",
+      "criterion": "Ningún caso generado puede completar una llamada de red, lanzar un proceso externo ni escribir fuera del área de pruebas autorizada; la verificación se ejecuta en aislamiento de red y de sistema de archivos para detectar efectos directos o indirectos.",
+      "verification": "test:no_external_effects_runtime"
+    }
+  ],
+  "sources": [
+    {
+      "source_ref": "INPUT/raw/defect_report_sample.md",
+      "authority": "material-sintetico-de-la-actividad",
+      "effective_date": "2026-09-22",
+      "sha256": "3c7b8213290eaf7404b888beebc74ca00ca104ce92cd06c6a2ba3b60bb7309f3"
+    }
+  ],
+  "constraints": {
+    "data_classification": "internal",
+    "allowed_tools": [
+      "repo_reader",
+      "test_runner"
+    ],
+    "external_effects": []
+  },
+  "approvals_required_for": [
+    "external_write",
+    "deployment",
+    "production_data"
+  ],
+  "expected_artifacts": [
+    "OUTPUT/v*/tests/generated/**",
+    "OUTPUT/v*/generation_report.json"
+  ],
+  "question_budget": {
+    "max_blocking_questions": 6,
+    "max_rounds": 2
+  }
+}

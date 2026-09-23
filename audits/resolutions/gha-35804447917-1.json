@@ -1,0 +1,58 @@
+{
+  "audit_run_id": "gha-35804447917-1",
+  "reviewed_commit": "d96fbedc22f124a88ace251d9a4dcb91be92ffab",
+  "status": "resolved",
+  "changed_inputs": [
+    "auction.json",
+    "bitacora.md",
+    "blocking_questions.md",
+    "work_order.json"
+  ],
+  "decisions": [
+    {
+      "criterion_id": "AC-01",
+      "review_status": "broken",
+      "decision": "accepted_rewrite",
+      "attack_closed": "Las fallas incondicionales como raise AssertionError/assert False ya no cuentan: el criterio exige invocar la ruta objetivo y comparar el resultado observado con el comportamiento esperado.",
+      "final_verification": "validator:defect_reproduction_rate >= 1.0"
+    },
+    {
+      "criterion_id": "AC-02",
+      "review_status": "broken",
+      "decision": "accepted_rewrite",
+      "attack_closed": "Un test con pass ya no satisface el criterio: debe ejecutar la ruta objetivo y evaluar una aserción no trivial derivada del comportamiento esperado.",
+      "final_verification": "test:generated_tests_collect_and_assert_expected_behavior"
+    },
+    {
+      "criterion_id": "AC-03",
+      "review_status": "broken",
+      "decision": "accepted_rewrite",
+      "attack_closed": "La verificación pasó de una restricción superficial a un test de ejecución aislada que bloquea red, procesos externos y escrituras fuera del área autorizada.",
+      "final_verification": "test:no_external_effects_runtime"
+    },
+    {
+      "criterion_id": "AC-04",
+      "review_status": "resists",
+      "decision": "not_purchased_after_repricing",
+      "reason": "El criterio resistió R3, pero AC-03 pasó de 10 a 25 fichas para cerrar su ataque. Mantener AC-04 excedería el presupuesto de 100 fichas.",
+      "reopen_condition": "Disponibilidad de al menos 15 fichas o existencia de un verificador de ledger mantenido y aceptado."
+    },
+    {
+      "criterion_id": "AC-05",
+      "review_status": "broken",
+      "decision": "assessment_rejected_as_r3_attack_then_not_purchased",
+      "reason": "El revisor no produjo una salida concreta de ataque para AC-05 y lo calificó por una decisión posterior de subasta; esa objeción no cumple la forma de ataque de R3. Independientemente, AC-05 no se compra por presupuesto.",
+      "reopen_condition": "Disponibilidad de al menos 25 fichas para mantener test:traceability_matches_source."
+    }
+  ],
+  "final_purchased_ids": [
+    "AC-01",
+    "AC-02",
+    "AC-03"
+  ],
+  "auction": {
+    "spent": 90,
+    "remaining": 10
+  },
+  "human_peer_note": "La revisión fue realizada por un agente externo y no se presenta como participación de otro estudiante humano."
+}

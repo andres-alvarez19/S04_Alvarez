@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "External adversarial review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reviewer_role", "attacks", "criteria_assessment", "overall_notes"],
+  "properties": {
+    "reviewer_role": {
+      "type": "string"
+    },
+    "attacks": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "criterion_id",
+          "criterion_literal",
+          "attack_name",
+          "attack_family",
+          "is_original",
+          "exploit_output",
+          "why_validator_accepts"
+        ],
+        "properties": {
+          "criterion_id": {
+            "type": "string",
+            "pattern": "^AC-0[1-5]$"
+          },
+          "criterion_literal": {
+            "type": "string",
+            "minLength": 10
+          },
+          "attack_name": {
+            "type": "string",
+            "minLength": 3
+          },
+          "attack_family": {
+            "type": "string",
+            "minLength": 3
+          },
+          "is_original": {
+            "type": "boolean"
+          },
+          "exploit_output": {
+            "type": "string",
+            "minLength": 10
+          },
+          "why_validator_accepts": {
+            "type": "string",
+            "minLength": 20
+          }
+        }
+      }
+    },
+    "criteria_assessment": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "criterion_id",
+          "status",
+          "reason",
+          "suggested_rewrite"
+        ],
+        "properties": {
+          "criterion_id": {
+            "type": "string",
+            "pattern": "^AC-0[1-5]$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["resists", "broken"]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10
+          },
+          "suggested_rewrite": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "overall_notes": {
+      "type": "string",
+      "minLength": 10
+    }
+  }
+}

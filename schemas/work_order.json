@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.example/schemas/work_order.json",
+  "title": "Work Order - reconstrucción local basada en S03_apunte.pdf",
+  "description": "Schema local creado para validar la plantilla de la Semana 3. No pretende ser idéntico al schema oficial del repositorio de la asignatura.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "work_order_id",
+    "project_id",
+    "nivel",
+    "nivel_criterio_de_admision",
+    "medicion_que_autoriza_ascender",
+    "objective",
+    "no_objectives",
+    "consumer",
+    "scope",
+    "acceptance",
+    "sources",
+    "constraints",
+    "approvals_required_for",
+    "expected_artifacts",
+    "question_budget"
+  ],
+  "properties": {
+    "work_order_id": {
+      "type": "string",
+      "pattern": "^WO-\\d{4}-\\d{3}-\\d{2}$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-\\d{4}-\\d{3}$"
+    },
+    "nivel": {
+      "type": "string",
+      "enum": ["T0", "T1", "T2", "T3"]
+    },
+    "nivel_criterio_de_admision": {
+      "type": "string",
+      "minLength": 10
+    },
+    "medicion_que_autoriza_ascender": {
+      "type": "string",
+      "minLength": 5
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 20
+    },
+    "no_objectives": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 10
+      }
+    },
+    "consumer": {
+      "type": "string",
+      "enum": ["human", "machine", "pipeline"]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["include", "exclude"],
+      "properties": {
+        "include": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "criterion", "verification"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^AC-0[1-5]$"
+          },
+          "criterion": {
+            "type": "string",
+            "minLength": 20
+          },
+          "verification": {
+            "type": "string",
+            "oneOf": [
+              {
+                "pattern": "^validator:[A-Za-z0-9_.-]+\\s*(>=|<=|==|>|<)\\s*[0-9]+(?:\\.[0-9]+)?$"
+              },
+              {
+                "pattern": "^test:[A-Za-z0-9_.-]+$"
+              },
+              {
+                "pattern": "^ledger:.+$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_ref", "authority", "effective_date", "sha256"],
+        "properties": {
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authority": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effective_date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "sha256": {
+            "type": ["string", "null"],
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data_classification", "allowed_tools", "external_effects"],
+      "properties": {
+        "data_classification": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_tools": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "external_effects": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "approvals_required_for": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "expected_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "question_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_blocking_questions", "max_rounds"],
+      "properties": {
+        "max_blocking_questions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "max_rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        }
+      }
+    }
+  }
+}

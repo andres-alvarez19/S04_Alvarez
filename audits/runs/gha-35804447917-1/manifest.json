@@ -1,0 +1,67 @@
+{
+  "audit_version": 1,
+  "completed_at_utc": "2026-09-23T01:00:20.561932+00:00",
+  "credential_source": "GEMINI_API_KEY environment variable / GitHub Actions secret",
+  "credential_value_recorded": false,
+  "free_tier_billing_enforced_by_code": false,
+  "free_tier_expected": true,
+  "free_tier_fallback_failures": [
+    {
+      "code": 503,
+      "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "code": 503,
+      "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+      "model": "gemini-3.5-flash"
+    }
+  ],
+  "free_tier_model_enforced": true,
+  "git_commit_evaluated": "d96fbedc22f124a88ace251d9a4dcb91be92ffab",
+  "github": {
+    "repository": "andres-alvarez19/S03_Alvarez",
+    "run_attempt": "1",
+    "run_id": "35804447917",
+    "workflow": "external-agent-review"
+  },
+  "input_sha256": {
+    "auction.json": "9c1abebeb74e1105defd34abb8eeb59da8bb14bfe254666e3c7f4e115def9f40",
+    "bitacora.md": "584819e4b6a32e67898d60bf128beaa9df8d8fa85aaf1eafa8e4c3fa660419c1",
+    "blocking_questions.md": "145dc62036713a21047b6adccf44b1f21d0828c3e1b28996d0a143571e8fee65",
+    "evals/caso_abstencion.jsonl": "d0ae74b2ccd98be68505fff9984c205a48f15dc2b3ec22d7c8a91ab9e4672389",
+    "evals/caso_adversario.jsonl": "70c7988fb4b2b139b2155c331501304de21159f8c6a444228c07a2287c25204c",
+    "evals/caso_agotamiento.jsonl": "0ae31acaca985cc53dd11f1d5827390a15109715dc410a948454c42574ec1255",
+    "schemas/work_order.json": "cb848285a229e75e2e58053d176251d5f5a3e44426fb117c4238e4a29007d4f4",
+    "work_order.json": "2bce5c80d29f7577f23cb39e2aff6f274a0658cae5987aa7ee607dd369aeee0f"
+  },
+  "model": "gemini-3.5-flash-lite",
+  "output_files": {
+    "request": "audits/runs/gha-35804447917-1/request.md",
+    "review_json": "audits/runs/gha-35804447917-1/review.json",
+    "review_markdown": "audits/runs/gha-35804447917-1/review.md"
+  },
+  "provider": "Google Gemini Developer API",
+  "request_sha256": "1ea552dc74277d001b326f8293156d788f88b2d6eb237b006c9fe0c7dbd63c89",
+  "requested_model": "gemini-3.8-flash",
+  "response_id": "oCSzauX2BrS839IPrujq2AE",
+  "review_sha256": "b825feff4ae473f7b0cf267c892a3a8bf701df8930f2a2f893148275027d92bc",
+  "run_id": "gha-35804447917-1",
+  "sdk": {
+    "package": "google-genai",
+    "version": "1.75.0"
+  },
+  "started_at_utc": "2026-09-23T01:00:14.249905+00:00",
+  "structured_output_mode": "response_json_schema",
+  "usage_metadata": {
+    "candidates_token_count": 1102,
+    "prompt_token_count": 6000,
+    "prompt_tokens_details": [
+      {
+        "modality": "TEXT",
+        "token_count": 6000
+      }
+    ],
+    "total_token_count": 7102
+  }
+}

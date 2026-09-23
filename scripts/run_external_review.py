@@ -155,8 +155,8 @@ def render_cross_audit(exchange: dict, our_audit: dict[str, str], model: str, ru
         "# Auditoría cruzada — Semana 4",
         "",
         "- Contraparte: **Google Gemini** (agente externo, no persona humana).",
-        f"- Modelo efectivo: \`{model}\`",
-        f"- Run: \`{run_id}\`",
+        f"- Modelo efectivo: `{model}`",
+        f"- Run: `{run_id}`",
         "",
         "## Gemini audita mi traza",
         "",
@@ -174,7 +174,7 @@ def render_cross_audit(exchange: dict, our_audit: dict[str, str], model: str, ru
         f"4. **Estado final:** {our_audit['q4_final_state']}",
         f"5. **Motivos mal nombrados:** {our_audit['q5_misnamed_reasons']}",
         "",
-        "La segunda sección se reconstruye exclusivamente desde \`peer_trace.jsonl\`; la comparación de la pregunta 5 usa la política determinista de la actividad para verificar el nombre del motivo/invariante.",
+        "La segunda sección se reconstruye exclusivamente desde `peer_trace.jsonl`; la comparación de la pregunta 5 usa la política determinista de la actividad para verificar el nombre del motivo/invariante.",
         "",
     ]
     return "\n".join(lines)

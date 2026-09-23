@@ -10,6 +10,7 @@ on:
       - "prompts/trace_review.md"
       - "schemas/trace_review.json"
       - "scripts/run_external_review.py"
+      - ".github/workflows/external-review.yml"
 
 permissions:
   contents: write
@@ -52,4 +53,6 @@ jobs:
             exit 0
           fi
           git commit -m "Registra auditoría cruzada Gemini S04 run ${GITHUB_RUN_ID}"
-          git push
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main

@@ -1,0 +1,17 @@
+{
+  "initial_tokens": 12,
+  "token_value_usd": 0.05,
+  "zones": {
+    "project:INPUT/**": {"read": true, "write": false, "invariant": "I4", "note": "sellada tras intake"},
+    "project:WORK/**": {"read": true, "write": true, "note": "sandbox"},
+    "project:OUTPUT/**": {"read": true, "write": "if_not_exists", "invariant": "I5", "note": "write-once"},
+    "project:TRACE/**": {"read": true, "write": true},
+    "project:EVIDENCE/**": {"read": true, "write": true},
+    "project:SPEC/**": {"read": true, "write": true},
+    "factory:**": {"read": true, "write": false, "invariant": "I2", "note": "solo lectura en corrida de proyecto"},
+    "other_project": {"read": false, "write": false, "invariant": "I1/I3", "note": "deny absoluto"}
+  },
+  "tool_allowlist": ["repo_grep", "ast_symbols", "render_md"],
+  "external_effects": "human_approval_required",
+  "default": "deny"
+}

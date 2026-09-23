@@ -1,4 +1,8 @@
 {
-  "status": "pending",
-  "note": "Se reemplaza automáticamente por el workflow external-agent-review de Semana 4."
+  "exchange_sha256": "1ac067dde13dd5afc2f97096134635692de1c94519767cb2118dfa2da091b583",
+  "git_commit_evaluated": "646b3b56fd5864b090400b0d191c738d1193ff86",
+  "model": "gemini-3.5-flash-lite",
+  "run_directory": "audits/runs/gha-35831541543-1",
+  "run_id": "gha-35831541543-1",
+  "status": "complete"
 }

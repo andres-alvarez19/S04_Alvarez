@@ -1,0 +1,37 @@
+{
+  "audit_version": 2,
+  "completed_at_utc": "2026-09-23T07:25:02.496985+00:00",
+  "credential_source": "GEMINI_API_KEY GitHub Actions secret",
+  "credential_value_recorded": false,
+  "exchange_sha256": "1ac067dde13dd5afc2f97096134635692de1c94519767cb2118dfa2da091b583",
+  "fallback_failures": [
+    {
+      "code": 503,
+      "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "code": 503,
+      "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+      "model": "gemini-3.5-flash"
+    }
+  ],
+  "git_commit_evaluated": "646b3b56fd5864b090400b0d191c738d1193ff86",
+  "human_peer": false,
+  "input_sha256": {
+    "TRACE/portero.jsonl": "8128b3146a75bcd5f7f616062083c3eaa6650aa47a93de3c015389bd9a21b127",
+    "activity/policy.json": "8507605ef634351a5df0f13cd27dc539a55978d29ff8503426d9d8c0bf78bcf3",
+    "activity/requests.json": "b4a5b72d2f17ba5e1198d54c01ad45081458ea3fb62733f648bd0e51f04fa513"
+  },
+  "model": "gemini-3.5-flash-lite",
+  "provider": "Google Gemini Developer API",
+  "request_sha256": "2c10e631b00fb6ae07d8902df8af708e3da57f114e90b32f77d0cf113e71cf6e",
+  "requested_model": "gemini-3.8-flash",
+  "role": "external_peer_for_week4_cross_review",
+  "run_id": "gha-35831541543-1",
+  "sdk": {
+    "package": "google-genai",
+    "version": "1.75.0"
+  },
+  "started_at_utc": "2026-09-23T07:24:44.641192+00:00"
+}

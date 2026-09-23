@@ -1,0 +1,7 @@
+{
+  "q1_spend": "9 fichas: S-01=1, S-02=1, S-08=2, S-09=4, S-12=1",
+  "q2_denials": "S-03: entrada_sellada (I4); S-04: salida_write_once (I5); S-05: intento_de_escape (I1/I3); S-06: fabrica_es_solo_lectura (I2); S-07: human_approval_required; S-11: capability_not_allowlisted; S-13: human_approval_required; S-15: default_deny_meta_change",
+  "q3_poison": "S-01: cuarentena en S-01:INPUT/raw/fuente.pdf#pie; S-08: cuarentena en S-08:repo_grep[0]; S-12: cuarentena en S-12:adjunto",
+  "q4_final_state": "completed_with_exhaustion; saldo final=3. Todas las solicitudes fueron procesadas correctamente y la corrida finalizó con saldo restante tras una solicitud agotada.",
+  "q5_misnamed_reasons": "No se detectaron filas con veredicto correcto y motivo/invariante mal nombrado."
+}

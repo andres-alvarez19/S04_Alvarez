@@ -1,0 +1,15 @@
+{"balance_after": 11, "invariant": null, "poison_action": "cuarentena", "poison_locator": "S-01:INPUT/raw/fuente.pdf#pie", "reason": "policy_allow", "request_id": "S-01", "tokens_charged": 1, "verdict": "permitida"}
+{"balance_after": 10, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "policy_allow", "request_id": "S-02", "tokens_charged": 1, "verdict": "permitida"}
+{"balance_after": 10, "invariant": "I4", "poison_action": null, "poison_locator": null, "reason": "entrada_sellada", "request_id": "S-03", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 10, "invariant": "I5", "poison_action": null, "poison_locator": null, "reason": "salida_write_once", "request_id": "S-04", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 10, "invariant": "I1/I3", "poison_action": null, "poison_locator": null, "reason": "intento_de_escape", "request_id": "S-05", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 10, "invariant": "I2", "poison_action": null, "poison_locator": null, "reason": "fabrica_es_solo_lectura", "request_id": "S-06", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 10, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "human_approval_required", "request_id": "S-07", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 8, "invariant": null, "poison_action": "cuarentena", "poison_locator": "S-08:repo_grep[0]", "reason": "tool_allowlist", "request_id": "S-08", "tokens_charged": 2, "verdict": "permitida"}
+{"balance_after": 4, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "budgeted_model_call", "request_id": "S-09", "tokens_charged": 4, "verdict": "permitida"}
+{"balance_after": 4, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "insufficient_budget", "request_id": "S-10", "tokens_charged": 0, "verdict": "agotado"}
+{"balance_after": 4, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "capability_not_allowlisted", "request_id": "S-11", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 3, "invariant": null, "poison_action": "cuarentena", "poison_locator": "S-12:adjunto", "reason": "policy_allow", "request_id": "S-12", "tokens_charged": 1, "verdict": "permitida"}
+{"balance_after": 3, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "human_approval_required", "request_id": "S-13", "tokens_charged": 0, "verdict": "denegada"}
+{"balance_after": 3, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "policy_allow", "request_id": "S-14", "tokens_charged": 0, "verdict": "permitida"}
+{"balance_after": 3, "invariant": null, "poison_action": null, "poison_locator": null, "reason": "default_deny_meta_change", "request_id": "S-15", "tokens_charged": 0, "verdict": "denegada"}

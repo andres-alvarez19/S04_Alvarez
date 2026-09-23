@@ -136,4 +136,4 @@ La evidencia completa está en `evidence/ablation.txt`.
 
 ## Estado de entrega
 
-La entrega se considera cerrada cuando `audits/latest.json` tenga `status: complete` y el bloque R3 anterior haya sido reemplazado por la corrida de Gemini. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y auditoría externa.
+**Entrega cerrada.** `audits/latest.json` registra `status: complete` para `gha-35831541543-1`, el bloque R3 contiene la revisión cruzada de Gemini y la validación final del mismo workflow terminó en `VALIDACIÓN S04 SUPERADA`. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y auditoría externa.

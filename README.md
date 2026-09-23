@@ -1,69 +1,44 @@
-# S03 — Cumplimiento malicioso y subasta de criterios
+# S04 — El portero: arnés de ejecución
 
-Entrega final para el encargo **E-6: convertir informes de defecto en casos de prueba ejecutables**.
+Implementación de Semana 4 sobre la fábrica T1 construida en Semana 3.
 
-## Artefactos principales
+## Entregables principales
 
-- `work_order.json`: orden final **después** de R3 y de la subasta.
-- `bitacora.md`: cinco criterios iniciales, autoataques, revisión externa, respuestas, reescrituras y decisión de alcance.
-- `blocking_questions.md`: datos que siguen bloqueando una corrida real.
-- `evals/`: banco mínimo obligatorio de abstención, adversario y agotamiento.
-- `auction.json`: subasta machine-readable, 90/100 fichas.
-- `schemas/work_order.json`: schema local reconstruido desde la plantilla del apunte.
-- `audits/`: evidencia inmutable de la revisión externa y su resolución.
-- `scripts/validate_submission.py`: validación integral de la entrega.
+- `TRACE/portero.jsonl`: hoja de traza digital de las 15 solicitudes.
+- `bitacora.md`: evidencia R1–R5, incluida auditoría cruzada con Gemini.
+- `harness/paths.py`: resolutor único de rutas.
+- `harness/run.py`: puerta única de ejecución.
+- `evals/test_paths.py`: seis casos oficiales del resolutor.
+- `evals/test_arnes.py`: seis casos oficiales del arnés.
+- `evidence/tests.txt`: salida literal de la batería en verde.
+- `evidence/ablation.txt`: corrida con I5 retirado y corrida restaurada.
+- `audits/`: revisión cruzada reproducible con Google Gemini.
 
-## Alcance final
+## Decisiones de implementación
 
-La revisión adversarial obligó a endurecer AC-01, AC-02 y AC-03. AC-03 dejó de ser una comprobación superficial de
-10 fichas y pasó a un test de repositorio en aislamiento de 25 fichas.
+La hoja física de la actividad se reemplaza por **JSONL**, porque conserva una fila/evento por línea, es auditable, versionable y procesable por el agente externo. La revisión cruzada usa Gemini explícitamente como agente externo; no se presenta como participación humana.
 
-La subasta final queda:
-
-| Criterio | Coste | Estado |
-|---|---:|---|
-| AC-01 | 40 | comprado |
-| AC-02 | 25 | comprado |
-| AC-03 | 25 | comprado |
-| AC-04 | 15 | no comprado → no-objetivo |
-| AC-05 | 25 | no comprado → no-objetivo |
-
-**Gastado: 90/100.**
-
-El `work_order.json` contiene únicamente los criterios comprados; los no comprados se conservan como no-objetivos con
-condición explícita de reapertura.
-
-## Revisión cruzada externa
-
-La revisión se ejecutó y quedó auditada:
-
-- Run: `gha-35804447917-1`
-- Commit evaluado: `d96fbedc22f124a88ace251d9a4dcb91be92ffab`
-- Proveedor: Google Gemini
-- Modelo efectivo: `gemini-3.5-flash-lite`
-- Evidencia: `audits/runs/gha-35804447917-1/`
-- Resolución de ataques: `audits/resolutions/gha-35804447917-1.json`
-
-Los ataques válidos sobre AC-01, AC-02 y AC-03 fueron aceptados y cerrados mediante reescritura. AC-04 resistió. La objeción
-a AC-05 no se aceptó como ataque R3 porque no incluyó una salida concreta y dependía de una decisión posterior de la subasta;
-AC-05 igualmente quedó fuera del alcance por presupuesto.
+La fábrica sigue declarada como **T1** desde `work_order.json`. El `PathResolver` implementa I1/I4/I5 y, además, I2/I3 porque la política de la actividad y la batería oficial incluyen esos casos.
 
 ## Validación
 
 ```bash
 python -m pip install -r requirements.txt
-python scripts/test_external_review_config.py
+python scripts/build_portero_trace.py
+pytest -q
+python scripts/run_ablation.py
 python scripts/validate_submission.py
 ```
 
-El validador comprueba esquema, correspondencia entre subasta y orden final, banco mínimo, trazabilidad de R3, integridad
-de hashes de la auditoría y resolución explícita de los cambios posteriores al ataque.
+Antes de la corrida externa de Gemini puede usarse:
 
-## Nota metodológica
+```bash
+python scripts/validate_submission.py --pre-review
+```
 
-`schemas/work_order.json` es una reconstrucción local basada en el material entregado, porque no se encontró el schema oficial
-del repositorio de la asignatura.
+## Automatización
 
-La revisión cruzada se realizó con un **agente externo**, no con otro estudiante humano. La evidencia no oculta esa diferencia.
-Si el docente exige literalmente participación humana, esa condición administrativa queda fuera de lo que puede demostrar
-este repositorio.
+- `.github/workflows/validate.yml`: valida la entrega en cada push/PR.
+- `.github/workflows/external-review.yml`: ejecuta la revisión cruzada con `GEMINI_API_KEY`, guarda la evidencia y actualiza la sección R3 de `bitacora.md`.
+
+El workflow de revisión se dispara automáticamente cuando cambian la traza, política, solicitudes, prompt, schema o ejecutor de la auditoría.

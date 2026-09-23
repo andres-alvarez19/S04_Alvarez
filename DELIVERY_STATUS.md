@@ -1,24 +1,16 @@
-# Estado de entrega
+# Estado de entrega S04
 
-**Estado técnico: LISTO PARA ENTREGAR.**
-
-- [x] Encargo E-6 elegido.
-- [x] Objetivo verificable y alcance definidos.
-- [x] Cinco criterios iniciales documentados con los tres sabores de verificación.
-- [x] Restricción negativa incluida.
-- [x] Autoataque documentado.
-- [x] Revisión adversarial externa ejecutada y auditada.
-- [x] Ataques válidos respondidos con reescritura.
-- [x] Subasta recalculada dentro de 100 fichas.
-- [x] Criterios no comprados movidos a no-objetivos con condición de reapertura.
-- [x] Banco mínimo de tres casos como archivos JSONL.
-- [x] Nivel T1 y condición de ascenso documentados.
-- [x] Schema local y validación automática.
+- [x] Reutilización de la fábrica T1 de Semana 3.
+- [x] Política y saldo inicial de 12 fichas serializados.
+- [x] Hoja de traza digital JSONL con S-01…S-15.
+- [x] Tres contenidos envenenados en cuarentena con localizador y continuidad.
+- [x] `AGOTADO` diferenciado de denegación y entrega parcial reanudable.
+- [x] `PathResolver` con rutas resueltas y violaciones como datos.
+- [x] Seis casos oficiales de rutas.
+- [x] Seis casos oficiales de comportamiento del arnés.
+- [x] Batería local: 12/12 en verde.
+- [x] Ablación de I5 con fallo observable y restauración 12/12.
 - [x] GitHub Actions de validación.
+- [ ] Auditoría cruzada Gemini ejecutada en S04 (se marca automáticamente al completarse el workflow).
 
-## Salvedades transparentes
-
-1. No se encontró el schema oficial mencionado por el material; se usa el schema local reconstruido.
-2. La revisión cruzada fue ejecutada por un agente externo de Gemini, no por otro estudiante humano.
-3. El runner real y la autoridad entre informe/repositorio siguen siendo datos bloqueantes para una implementación futura,
-   no para la especificación de Semana 3.
+`python scripts/validate_submission.py` es la verificación final autoritativa del repositorio.

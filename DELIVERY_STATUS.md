@@ -11,6 +11,6 @@
 - [x] Batería local: 12/12 en verde.
 - [x] Ablación de I5 con fallo observable y restauración 12/12.
 - [x] GitHub Actions de validación.
-- [ ] Auditoría cruzada Gemini ejecutada en S04 (se marca automáticamente al completarse el workflow).
+- [x] Auditoría cruzada Gemini ejecutada en S04 (`gha-35831541543-1`, Gemini `gemini-3.5-flash-lite`).
 
 `python scripts/validate_submission.py` es la verificación final autoritativa del repositorio.

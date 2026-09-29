@@ -4,7 +4,7 @@
 
 Se reutiliza la fábrica definida en `work_order.json` de Semana 3. El nivel declarado continúa siendo **T1**. La actividad de esta semana añade la puerta única de ejecución, el resolutor de rutas, presupuesto previo, tratamiento de error como dato, cuarentena de contenido externo y traza reconstruible.
 
-La revisión cruzada se realiza con **Google Gemini como agente externo**, de forma explícita y trazable, igual que en la semana anterior. No se presenta como revisión humana.
+La revisión cruzada exigida por la actividad se realiza con **un compañero humano**. Como evidencia complementaria se conserva además la revisión automatizada de **Google Gemini como agente externo**, declarada explícitamente como tal.
 
 ## R1 · Política y saldo
 
@@ -53,7 +53,21 @@ El material no asigna V-03 a un ID concreto, solo indica que aparece al pie de u
 
 ## R3 · Auditoría cruzada
 
-Gemini actúa como contraparte externa en dos direcciones: produce su propia hoja digital de 15 solicitudes para que yo la audite, y audita mi `TRACE/portero.jsonl` respondiendo las cinco preguntas exigidas. La evidencia se guarda de forma inmutable bajo `audits/runs/<run_id>/`.
+### Auditoría de la hoja del compañero
+
+La hoja recibida del compañero se conserva en `audits/human_peer_trace.md`. La reconstrucción se realizó únicamente desde esa hoja, sin solicitar explicaciones adicionales al autor. El detalle completo se conserva en `audits/human_peer_review.md`.
+
+1. **Gasto:** 9 fichas: S-01=1, S-02=1, S-08=2, S-09=4 y S-12=1. Saldo final: 3.
+2. **Denegaciones:** S-03 por I4; S-04 por I5; S-05 por I1/I3; S-06 por I2; S-07 por default-deny y aprobación humana previa para efectos externos; S-11 por capacidad no registrada; S-13 por efecto irreversible sujeto a aprobación humana previa; S-15 por modificación no autorizada de la allowlist.
+3. **Contenido envenenado:** V-03 en S-01, V-02 en S-08 y V-01 en S-12. Los tres quedan en cuarentena con localizador y la corrida continúa. V-03 intenta ampliar el presupuesto mediante texto, por lo que constituye un intento de saltar el control de presupuesto.
+4. **Estado final:** según el cierre de la hoja, **AGOTADO con entrega parcial reanudable** por S-10, que requería 5 fichas con saldo 4. No se ejecuta ni se cobra; la traza continúa hasta S-15 y termina con saldo 3.
+5. **Motivos mal nombrados:** no se detecta una fila claramente mal nombrada. S-07 y S-13 incluyen la regla de aprobación humana previa y permiten reconstruir correctamente el motivo.
+
+**Resultado de la auditoría humana:** las cinco preguntas son reconstruibles exclusivamente desde la hoja del compañero; no se detectan huecos que bloqueen la reconstrucción.
+
+### Auditoría automatizada complementaria
+
+Gemini se mantiene como evidencia adicional: produce una hoja digital independiente y audita mi `TRACE/portero.jsonl`. Esta evidencia no sustituye la revisión humana y se guarda bajo `audits/runs/<run_id>/`.
 
 <!-- CROSS_AUDIT_START -->
 
@@ -136,4 +150,4 @@ La evidencia completa está en `evidence/ablation.txt`.
 
 ## Estado de entrega
 
-**Entrega cerrada.** `audits/latest.json` registra `status: complete` para `gha-35831541543-1`, el bloque R3 contiene la revisión cruzada de Gemini y la validación final del mismo workflow terminó en `VALIDACIÓN S04 SUPERADA`. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y auditoría externa.
+**Entrega cerrada.** La bitácora incorpora la auditoría humana de la hoja del compañero y conserva Gemini como evidencia complementaria. `audits/latest.json` registra `status: complete` para `gha-35831541543-1` y la validación final del workflow terminó en `VALIDACIÓN S04 SUPERADA`. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y revisión cruzada.

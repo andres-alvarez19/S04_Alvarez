@@ -63,7 +63,13 @@ La hoja recibida del compañero se conserva en `audits/human_peer_trace.md`. La 
 4. **Estado final:** según el cierre de la hoja, **AGOTADO con entrega parcial reanudable** por S-10, que requería 5 fichas con saldo 4. No se ejecuta ni se cobra; la traza continúa hasta S-15 y termina con saldo 3.
 5. **Motivos mal nombrados:** no se detecta una fila claramente mal nombrada. S-07 y S-13 incluyen la regla de aprobación humana previa y permiten reconstruir correctamente el motivo.
 
-**Resultado de la auditoría humana:** las cinco preguntas son reconstruibles exclusivamente desde la hoja del compañero; no se detectan huecos que bloqueen la reconstrucción.
+**Resultado de mi auditoría humana:** las cinco preguntas son reconstruibles exclusivamente desde la hoja del compañero; no se detectan huecos que bloqueen la reconstrucción.
+
+### Retroalimentación recibida sobre mi hoja
+
+Mi compañero auditó la primera versión de `TRACE/portero.md` y confirmó que **los 15 veredictos y los saldos eran correctos**, pero detectó problemas de reconstruibilidad: faltaba declarar literalmente el estado terminal, algunos motivos eran códigos técnicos poco descriptivos, las cuarentenas no explicaban qué intentaba cada fragmento, no estaba visible la conversión de S-09/S-10, faltaba la fila inicial y algunos tipos de acceso no seguían literalmente la clasificación de la guía.
+
+La retroalimentación original se conserva en `audits/human_peer_review_received.md`. A partir de ella se corrigió `TRACE/portero.md` para que sea autosuficiente: ahora contiene saldo inicial, **estado terminal AGOTADO con entrega parcial reanudable**, motivos expresados con las reglas de política, explicación de V-01/V-02/V-03, cálculo de costes y tipos de acceso ajustados. No se inventaron claves de idempotencia ausentes de la traza; esas pertenecen al checkpoint del arnés y a sus pruebas.
 
 ### Auditoría automatizada complementaria
 
@@ -150,4 +156,4 @@ La evidencia completa está en `evidence/ablation.txt`.
 
 ## Estado de entrega
 
-**Entrega cerrada.** La bitácora incorpora la auditoría humana de la hoja del compañero y conserva Gemini como evidencia complementaria. `audits/latest.json` registra `status: complete` para `gha-35831541543-1` y la validación final del workflow terminó en `VALIDACIÓN S04 SUPERADA`. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y revisión cruzada.
+**Entrega cerrada.** La bitácora incorpora mi auditoría de la hoja del compañero, la retroalimentación recibida sobre mi propia hoja y las correcciones derivadas; Gemini se conserva como evidencia complementaria. `audits/latest.json` registra `status: complete` para `gha-35831541543-1` y la validación final del workflow terminó en `VALIDACIÓN S04 SUPERADA`. `scripts/validate_submission.py` verifica la estructura, la traza de 15 filas, saldos, tres cuarentenas, agotamiento reanudable, 12 pruebas, ablación y revisión cruzada.

@@ -45,6 +45,8 @@ def validate_required_files() -> bool:
         "evidence/tests.txt",
         "evidence/ablation.txt",
         "bitacora.md",
+        "audits/human_peer_trace.md",
+        "audits/human_peer_review.md",
         ".github/workflows/validate.yml",
         ".github/workflows/external-review.yml",
     ]
@@ -139,6 +141,33 @@ def validate_bitacora() -> bool:
     return fail("Bitácora incompleta: " + ", ".join(missing)) if missing else ok("Bitácora cubre R1-R5 con evidencia literal")
 
 
+def validate_human_peer_review() -> bool:
+    trace = ROOT / "audits" / "human_peer_trace.md"
+    review = ROOT / "audits" / "human_peer_review.md"
+    if not trace.exists() or not review.exists():
+        return fail("Falta la evidencia de auditoría cruzada humana")
+    trace_text = trace.read_text(encoding="utf-8")
+    review_text = review.read_text(encoding="utf-8")
+    required_trace = ["S-01", "S-15", "V-01", "V-02", "V-03", "saldo final 3"]
+    required_review = [
+        "Cinco preguntas de auditoría",
+        "9 fichas",
+        "S-03",
+        "S-15",
+        "V-03",
+        "AGOTADO con entrega parcial reanudable",
+        "No se detecta una fila claramente mal nombrada",
+    ]
+    if not all(token in trace_text for token in required_trace):
+        return fail("La hoja humana recibida no conserva la información mínima reconstruible")
+    if not all(token in review_text for token in required_review):
+        return fail("La auditoría humana no contiene las cinco respuestas exigidas")
+    bitacora = (ROOT / "bitacora.md").read_text(encoding="utf-8")
+    if "Auditoría de la hoja del compañero" not in bitacora:
+        return fail("La bitácora no incorpora la auditoría humana")
+    return ok("Auditoría cruzada humana incorporada y reconstruible")
+
+
 def validate_cross_review(pre_review: bool) -> bool:
     if pre_review:
         return ok("Auditoría Gemini omitida en validación previa a R3")
@@ -182,6 +211,7 @@ def main() -> int:
         validate_tests(),
         validate_ablation(),
         validate_bitacora(),
+        validate_human_peer_review(),
         validate_cross_review(args.pre_review),
         validate_no_secret(),
     ]

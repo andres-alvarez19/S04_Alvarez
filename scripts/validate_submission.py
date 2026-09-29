@@ -40,6 +40,7 @@ def validate_required_files() -> bool:
         "evals/test_paths.py",
         "evals/test_arnes.py",
         "TRACE/portero.jsonl",
+        "TRACE/portero.md",
         "activity/policy.json",
         "activity/requests.json",
         "evidence/tests.txt",
@@ -47,6 +48,7 @@ def validate_required_files() -> bool:
         "bitacora.md",
         "audits/human_peer_trace.md",
         "audits/human_peer_review.md",
+        "audits/human_peer_review_received.md",
         ".github/workflows/validate.yml",
         ".github/workflows/external-review.yml",
     ]
@@ -101,6 +103,29 @@ def validate_trace() -> bool:
     return bool(valid)
 
 
+def validate_human_trace_view() -> bool:
+    path = ROOT / "TRACE" / "portero.md"
+    text = path.read_text(encoding="utf-8")
+    required = [
+        "| 0 | (inicio de corrida)",
+        "Saldo inicial: 12 fichas",
+        "INPUT admite lectura",
+        "WORK es sandbox escribible",
+        "TRACE admite escritura",
+        "default-deny",
+        "0,18 USD = 3,6 fichas → 4 fichas",
+        "0,25 USD = 5 fichas > saldo 4",
+        "intenta ampliar el presupuesto a 50 USD",
+        "exfiltrar `policy.json`",
+        "ignoren las reglas",
+        "Estado terminal:",
+        "AGOTADO con entrega parcial reanudable",
+    ]
+    missing = [token for token in required if token not in text]
+    if missing:
+        return fail("Vista humana de la traza incompleta: " + ", ".join(missing))
+    return ok("TRACE/portero.md es autosuficiente y corrige los hallazgos de reconstruibilidad")
+
 def validate_path_resolver_source() -> bool:
     text = (ROOT / "harness" / "paths.py").read_text(encoding="utf-8")
     valid = True
@@ -144,10 +169,12 @@ def validate_bitacora() -> bool:
 def validate_human_peer_review() -> bool:
     trace = ROOT / "audits" / "human_peer_trace.md"
     review = ROOT / "audits" / "human_peer_review.md"
-    if not trace.exists() or not review.exists():
-        return fail("Falta la evidencia de auditoría cruzada humana")
+    received = ROOT / "audits" / "human_peer_review_received.md"
+    if not trace.exists() or not review.exists() or not received.exists():
+        return fail("Falta evidencia de la auditoría cruzada humana bidireccional")
     trace_text = trace.read_text(encoding="utf-8")
     review_text = review.read_text(encoding="utf-8")
+    received_text = received.read_text(encoding="utf-8")
     required_trace = ["S-01", "S-15", "V-01", "V-02", "V-03", "saldo final 3"]
     required_review = [
         "Cinco preguntas de auditoría",
@@ -163,9 +190,12 @@ def validate_human_peer_review() -> bool:
     if not all(token in review_text for token in required_review):
         return fail("La auditoría humana no contiene las cinco respuestas exigidas")
     bitacora = (ROOT / "bitacora.md").read_text(encoding="utf-8")
-    if "Auditoría de la hoja del compañero" not in bitacora:
-        return fail("La bitácora no incorpora la auditoría humana")
-    return ok("Auditoría cruzada humana incorporada y reconstruible")
+    if "Auditoría de la hoja del compañero" not in bitacora or "Retroalimentación recibida sobre mi hoja" not in bitacora:
+        return fail("La bitácora no incorpora ambas direcciones de la auditoría humana")
+    received_required = ["15 decisiones son correctas", "Falta el estado terminal", "policy_allow", "Las cuarentenas no dicen qué intentaba", "Resolución de los hallazgos"]
+    if not all(token in received_text for token in received_required):
+        return fail("La retroalimentación humana recibida está incompleta")
+    return ok("Auditoría cruzada humana bidireccional incorporada y reconstruible")
 
 
 def validate_cross_review(pre_review: bool) -> bool:
@@ -207,6 +237,7 @@ def main() -> int:
     checks = [
         validate_required_files(),
         validate_trace(),
+        validate_human_trace_view(),
         validate_path_resolver_source(),
         validate_tests(),
         validate_ablation(),

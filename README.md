@@ -4,19 +4,23 @@ Implementación de Semana 4 sobre la fábrica T1 construida en Semana 3.
 
 ## Entregables principales
 
-- `TRACE/portero.jsonl`: hoja de traza digital de las 15 solicitudes.
-- `bitacora.md`: evidencia R1–R5, incluida auditoría cruzada con Gemini.
+- `TRACE/portero.jsonl`: traza técnica reproducible de las 15 solicitudes.
+- `TRACE/portero.md`: hoja autosuficiente y legible para auditoría humana.
+- `bitacora.md`: evidencia R1–R5, incluida auditoría cruzada humana y revisión recibida.
 - `harness/paths.py`: resolutor único de rutas.
 - `harness/run.py`: puerta única de ejecución.
 - `evals/test_paths.py`: seis casos oficiales del resolutor.
 - `evals/test_arnes.py`: seis casos oficiales del arnés.
 - `evidence/tests.txt`: salida literal de la batería en verde.
 - `evidence/ablation.txt`: corrida con I5 retirado y corrida restaurada.
-- `audits/`: revisión cruzada reproducible con Google Gemini.
+- `audits/human_peer_trace.md`: hoja recibida del compañero.
+- `audits/human_peer_review.md`: mi auditoría de la hoja del compañero.
+- `audits/human_peer_review_received.md`: auditoría que mi compañero realizó sobre mi hoja.
+- `audits/`: conserva además la revisión automatizada de Google Gemini como evidencia complementaria.
 
 ## Decisiones de implementación
 
-La hoja física de la actividad se reemplaza por **JSONL**, porque conserva una fila/evento por línea, es auditable, versionable y procesable por el agente externo. La revisión cruzada usa Gemini explícitamente como agente externo; no se presenta como participación humana.
+La traza técnica se conserva en **JSONL** por ser auditable y reproducible, y se deriva una hoja Markdown autosuficiente para la revisión humana. La revisión cruzada principal se realizó con un compañero; Gemini queda explícitamente como evidencia automatizada complementaria y no se presenta como participación humana.
 
 La fábrica sigue declarada como **T1** desde `work_order.json`. El `PathResolver` implementa I1/I4/I5 y, además, I2/I3 porque la política de la actividad y la batería oficial incluyen esos casos.
 
